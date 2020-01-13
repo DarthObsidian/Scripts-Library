@@ -6,13 +6,24 @@ public class HexChunk : MonoBehaviour
 {
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
+    private List<Vector2> uvs = new List<Vector2>();
     public MeshFilter meshFilter => GetComponent<MeshFilter>();
 
-    void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
+    private void Start()
     {
-        int vertexIndex = vertices.Count;
-        for (int i = 0; i < HexVoxel.hexTris.Length; i++)
+        AddTriangles();
+        CreateMesh();
+    }
+
+    void AddTriangles()
+    {
+        //foreach (var vert in HexVoxel.hexVerts)
+        //    vertices.Add(vert);
+
+        for (int i = 0; i < HexVoxel.hexTris.GetLength(0); i++)
         {
+            int vertexIndex = vertices.Count;
+
             vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 0]]);
             vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 1]]);
             vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 2]]);
@@ -25,6 +36,12 @@ public class HexChunk : MonoBehaviour
 
     void CreateMesh()
     {
+        var mesh = new Mesh();
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        
+        mesh.RecalculateNormals();
 
+        meshFilter.mesh = mesh;
     }
 }
