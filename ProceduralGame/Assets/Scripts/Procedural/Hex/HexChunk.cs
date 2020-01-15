@@ -11,15 +11,13 @@ public class HexChunk : MonoBehaviour
 
     private void Start()
     {
-        AddTriangles();
+        CreateVoxelMeshData();
         CreateMesh();
     }
 
-    void AddTriangles()
+    //Creates the data for each voxel
+    void CreateVoxelMeshData()
     {
-        //foreach (var vert in HexVoxel.hexVerts)
-        //    vertices.Add(vert);
-
         for (int i = 0; i < HexVoxel.hexTris.GetLength(0); i++)
         {
             int vertexIndex = vertices.Count;
@@ -27,13 +25,18 @@ public class HexChunk : MonoBehaviour
             vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 0]]);
             vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 1]]);
             vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 2]]);
+            vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTris[i, 3]]);
 
             triangles.Add(vertexIndex);
             triangles.Add(vertexIndex + 1);
             triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex + 1);
+            triangles.Add(vertexIndex + 3);
         }
     }
 
+    //creates the mesh from the provided voxel data
     void CreateMesh()
     {
         var mesh = new Mesh();

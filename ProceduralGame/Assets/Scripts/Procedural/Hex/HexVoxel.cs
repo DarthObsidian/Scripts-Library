@@ -22,37 +22,28 @@ public static class HexVoxel
         new Vector3(0f, 1f, -outerRadius),
         new Vector3(-innerRadius, 1f, -0.5f * outerRadius),
         new Vector3(-innerRadius, 1f, 0.5f * outerRadius),
-
-        //center points
-        new Vector3(0f, 0f, 0f),
-        new Vector3(0f, 1f, 0f)
     };
 
     public static readonly int[,] hexTris =
     {
-        { 1, 7, 0 },
-        { 0, 7, 6 },
-        { 2, 8, 1 },
-        { 1, 8, 7 },
-        { 3, 9, 2 },
-        { 2, 9, 8 },
-        { 4, 10, 3 },
-        { 3, 10, 9 },
-        { 5, 11, 4 },
-        { 4, 11, 10 },
-        { 0, 6, 5 },
-        { 5, 6, 11 },
-        { 0, 12, 1 },
-        { 1, 12, 2 },
-        { 2, 12, 3 },
-        { 3, 12, 4 },
-        { 4, 12, 5 },
-        { 5, 12, 0 },
-        { 9, 13, 8 },
-        { 8, 13, 7 },
-        { 7, 13, 6 },
-        { 6, 13, 11 },
-        { 11, 13, 10 },
-        { 10, 13, 9 }
+        { 1, 7, 0, 6 },
+        
+        { 2, 8, 1, 7 },
+        
+        { 3, 9, 2, 8 },
+        
+        { 4, 10, 3, 9 },
+        
+        { 5, 11, 4, 10 },
+        
+        { 0, 6, 5, 11 },
+        
+        //top face
+        { 10, 11, 9, 8 },
+        { 11, 6, 8, 7 },
+        
+        //bottom face
+        { 4, 3, 5, 2 },
+        { 5, 2, 0, 1 }
     };
 }
