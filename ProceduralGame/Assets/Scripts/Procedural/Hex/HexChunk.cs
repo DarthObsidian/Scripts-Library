@@ -14,7 +14,7 @@ public class HexChunk : MonoBehaviour
     public static readonly int chunkWidth = 5;
     public static readonly int chunkHeight = 10;
 
-    List<Vector4> voxelCoords = new List<Vector4>();
+    Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
 
     private void Start()
     {
@@ -24,6 +24,7 @@ public class HexChunk : MonoBehaviour
         CreateMesh();
     }
 
+    //creates a list containing each voxel position
     private void PopulateVoxelMap()
     {
         for (int y = 0; y < chunkHeight; y++)
@@ -33,19 +34,22 @@ public class HexChunk : MonoBehaviour
                 for (int x = 0; x < chunkWidth; x++)
                 {
                     HexCoordinates coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
-                    voxelCoords.Add(new Vector4(coord.x, coord.w, coord.z, coord.y));
+                    voxelCoords.Add(coord, 1);
                 }
             }
         }
     }
 
+    //checks if the provided coordinates are occupied by a voxel
     private bool CheckVoxel(Vector4 pos)
     {
-        if(voxelCoords.Contains(pos))
+        HexCoordinates coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
+        if(voxelCoords.ContainsKey(coord))
             return true;
         return false;
     }
 
+    //creates a chunk
     void CreateChunk()
     {
         for (int y = 0; y < chunkHeight; y++)
@@ -63,11 +67,12 @@ public class HexChunk : MonoBehaviour
         }
     }
 
-    //Creates the data for each voxel
+    //Creates the vertex, tri, and uv data for each voxel
     void CreateVoxelMeshData(Vector3 pos, Vector4 checkPos)
     {
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)
         {
+            //only add the face if it is visible
             if(!CheckVoxel(checkPos + HexVoxel.faceChecks[i]))
             {
                 int vertexIndex = vertices.Count;

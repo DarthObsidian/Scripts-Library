@@ -37,7 +37,7 @@ public static class HexVoxel
     public static readonly int[,] hexTopTris =
     {
         { 10, 11, 9, 6, 8, 7 }, //top face
-        { 4, 3, 5, 2, 0, 1 } //bottom face
+        { 4, 3, 5, 2, 0, 1 }    //bottom face
     };
 
     public static readonly Vector4[] faceChecks =
