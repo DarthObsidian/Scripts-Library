@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class HexChunk : MonoBehaviour
@@ -33,7 +32,7 @@ public class HexChunk : MonoBehaviour
             {
                 for (int x = 0; x < chunkWidth; x++)
                 {
-                    HexCoordinates coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
+                    var coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
                     voxelCoords.Add(coord, 1);
                 }
             }
@@ -43,14 +42,12 @@ public class HexChunk : MonoBehaviour
     //checks if the provided coordinates are occupied by a voxel
     private bool CheckVoxel(Vector4 pos)
     {
-        HexCoordinates coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
-        if(voxelCoords.ContainsKey(coord))
-            return true;
-        return false;
+        var coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
+        return voxelCoords.ContainsKey(coord);
     }
 
     //creates a chunk
-    void CreateChunk()
+    private void CreateChunk()
     {
         for (int y = 0; y < chunkHeight; y++)
         {
@@ -60,7 +57,7 @@ public class HexChunk : MonoBehaviour
                 {
                     float posX = (x + z * 0.5f - z / 2) * (HexVoxel.innerRadius * 2f);
                     float posZ = z * (HexVoxel.outerRadius * 1.5f);
-                    HexCoordinates coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
+                    var coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
                     CreateVoxelMeshData(new Vector3(posX, y, posZ), new Vector4(coord.x, coord.w,  coord.z, coord.y));
                 }
             }
@@ -68,7 +65,7 @@ public class HexChunk : MonoBehaviour
     }
 
     //Creates the vertex, tri, and uv data for each voxel
-    void CreateVoxelMeshData(Vector3 pos, Vector4 checkPos)
+    private void CreateVoxelMeshData(Vector3 pos, Vector4 checkPos)
     {
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)
         {
@@ -82,6 +79,7 @@ public class HexChunk : MonoBehaviour
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexSideTris[i, 2]] + pos);
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexSideTris[i, 3]] + pos);
 
+                //uvs for the square faces
                 uvs.Add(HexVoxel.hexUvs[0]);
                 uvs.Add(HexVoxel.hexUvs[1]);
                 uvs.Add(HexVoxel.hexUvs[2]);
@@ -109,6 +107,7 @@ public class HexChunk : MonoBehaviour
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 4]] + pos);
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 5]] + pos);
                 
+                //uvs for the hex face
                 uvs.Add(new Vector2(0f, 0.5f));
                 uvs.Add(new Vector2(0.25f, 1f));
                 uvs.Add(new Vector2(0.25f, 0f));
@@ -133,7 +132,7 @@ public class HexChunk : MonoBehaviour
     }
 
     //creates the mesh from the provided voxel data
-    void CreateMesh()
+    private void CreateMesh()
     {
         var mesh = new Mesh();
         mesh.vertices = vertices.ToArray();

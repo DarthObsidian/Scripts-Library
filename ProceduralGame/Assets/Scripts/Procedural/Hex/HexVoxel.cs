@@ -24,6 +24,7 @@ public static class HexVoxel
         new Vector3(-innerRadius, 1f, 0.5f * outerRadius)
     };
 
+    //provides the vertex indices that each triangle is made up of, two triangles per list
     public static readonly int[,] hexSideTris =
     {
         { 1, 7, 0, 6 },     //top right
@@ -34,12 +35,14 @@ public static class HexVoxel
         { 0, 6, 5, 11 }     //top left
     };
 
+    //contains the vertex indices of each triangle in the main hex faces
     public static readonly int[,] hexTopTris =
     {
         { 10, 11, 9, 6, 8, 7 }, //top face
         { 4, 3, 5, 2, 0, 1 }    //bottom face
     };
 
+    //provides the directions to check for an existing hex
     public static readonly Vector4[] faceChecks =
     {
         //x,w,z,y
@@ -53,6 +56,7 @@ public static class HexVoxel
         new Vector4(0, 0, 0, -1),   //bottom
     };
 
+    //the uv coordinates
     public static readonly Vector2[] hexUvs =
     {
         new Vector2(0.0f, 0.0f),
@@ -68,12 +72,7 @@ public struct HexCoordinates
     public int x {get; private set;}
     public int y {get; private set;}
     public int z {get; private set;}
-    public int w {
-        get
-        {
-            return -x -z;
-        }
-    }
+    public int w => -x -z;
 
     public HexCoordinates (int _x, int _y, int _z)
     {
@@ -82,6 +81,7 @@ public struct HexCoordinates
         z = _z;
     }
 
+    //sets the hex coordinates based on standard xyz coords
     public static HexCoordinates FromOffsetCoordinates (int x, int y, int z)
     {
         return new HexCoordinates(x - z/2, y, z);
