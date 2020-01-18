@@ -4,7 +4,10 @@ public static class HexVoxel
 {
     public const float outerRadius = 1f;
     public const float innerRadius = outerRadius * 0.866025404f;
-
+    
+    public static readonly int TextureAtlasSizeInBlocks = 4;
+    public static float NormalizedBlockTextureSize => 1f / TextureAtlasSizeInBlocks;
+    
     public static Vector3[] hexVerts = 
     {
         //bottom points

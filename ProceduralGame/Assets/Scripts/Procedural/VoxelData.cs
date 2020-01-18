@@ -9,7 +9,6 @@ public static class VoxelData
     public static int WorldSizeInVoxels => WorldSizeInChunks * chunkSize.x;
 
     public static readonly int ViewDistanceInChunks = 5;
-
     
     public static float NormalizedBlockTextureSize => 1f / TextureAtlasSizeInBlocks;
 

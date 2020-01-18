@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class HexChunk : MonoBehaviour
 {
-    public Font font;
-
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
@@ -129,6 +127,22 @@ public class HexChunk : MonoBehaviour
                 triangles.Add(vertexIndex + 5);
             }
         }
+    }
+    
+    private void AddTexture(int textureId)
+    {
+        float y = textureId / HexVoxel.TextureAtlasSizeInBlocks;
+        float x = textureId - (y * HexVoxel.TextureAtlasSizeInBlocks);
+
+        x *= HexVoxel.NormalizedBlockTextureSize;
+        y *= HexVoxel.NormalizedBlockTextureSize;
+
+        y = 1f - y - HexVoxel.NormalizedBlockTextureSize;
+        
+        uvs.Add(new Vector2(x, y));
+        uvs.Add(new Vector2(x, y + HexVoxel.NormalizedBlockTextureSize));
+        uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y));
+        uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y + HexVoxel.NormalizedBlockTextureSize));
     }
 
     //creates the mesh from the provided voxel data
