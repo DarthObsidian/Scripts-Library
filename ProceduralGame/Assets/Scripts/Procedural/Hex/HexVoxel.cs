@@ -58,15 +58,6 @@ public static class HexVoxel
         new Vector4(0, 0, 0, 1),    //top
         new Vector4(0, 0, 0, -1),   //bottom
     };
-
-    //the uv coordinates
-    public static readonly Vector2[] hexUvs =
-    {
-        new Vector2(0.0f, 0.0f),
-        new Vector2(0.0f, 1.0f),
-        new Vector2(1.0f, 0.0f),
-        new Vector2(1.0f, 1.0f) 
-    };
 }
 
 [System.Serializable]

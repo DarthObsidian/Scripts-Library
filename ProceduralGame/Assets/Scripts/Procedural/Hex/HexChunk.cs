@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class HexChunk : MonoBehaviour
@@ -12,9 +13,11 @@ public class HexChunk : MonoBehaviour
     public static readonly int chunkHeight = 10;
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
+    private HexWorld world;
 
     private void Start()
     {
+        world = GameObject.Find("HexWorld").GetComponent<HexWorld>();
         PopulateVoxelMap();
 
         CreateChunk();
@@ -31,7 +34,12 @@ public class HexChunk : MonoBehaviour
                 for (int x = 0; x < chunkWidth; x++)
                 {
                     var coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
-                    voxelCoords.Add(coord, 1);
+                    if(y < 1)
+                        voxelCoords.Add(coord, 0);
+                    else if (y == chunkHeight - 1)
+                        voxelCoords.Add(coord, 2);
+                    else 
+                        voxelCoords.Add(coord, 1);
                 }
             }
         }
@@ -41,7 +49,7 @@ public class HexChunk : MonoBehaviour
     private bool CheckVoxel(Vector4 pos)
     {
         var coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
-        return voxelCoords.ContainsKey(coord);
+        return voxelCoords.ContainsKey(coord) && world.blockTypes[voxelCoords[coord]].isSolid;
     }
 
     //creates a chunk
@@ -70,6 +78,8 @@ public class HexChunk : MonoBehaviour
             //only add the face if it is visible
             if(!CheckVoxel(checkPos + HexVoxel.faceChecks[i]))
             {
+                var coord = new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z);
+                byte blockId = voxelCoords[coord];
                 int vertexIndex = vertices.Count;
             
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexSideTris[i, 0]] + pos);
@@ -78,10 +88,7 @@ public class HexChunk : MonoBehaviour
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexSideTris[i, 3]] + pos);
 
                 //uvs for the square faces
-                uvs.Add(HexVoxel.hexUvs[0]);
-                uvs.Add(HexVoxel.hexUvs[1]);
-                uvs.Add(HexVoxel.hexUvs[2]);
-                uvs.Add(HexVoxel.hexUvs[3]);
+                AddTexture(world.blockTypes[blockId].GetTextureID(i), false);
 
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
@@ -96,6 +103,8 @@ public class HexChunk : MonoBehaviour
         {
             if(!CheckVoxel(checkPos + HexVoxel.faceChecks[i + HexVoxel.hexSideTris.GetLength(0)]))
             {
+                var coord = new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z);
+                byte blockId = voxelCoords[coord];
                 int vertexIndex = vertices.Count;
 
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 0]] + pos);
@@ -106,12 +115,7 @@ public class HexChunk : MonoBehaviour
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 5]] + pos);
                 
                 //uvs for the hex face
-                uvs.Add(new Vector2(0f, 0.5f));
-                uvs.Add(new Vector2(0.25f, 1f));
-                uvs.Add(new Vector2(0.25f, 0f));
-                uvs.Add(new Vector2(0.75f, 1f));
-                uvs.Add(new Vector2(0.75f, 0f));
-                uvs.Add(new Vector2(1f, 0.5f));
+                AddTexture(world.blockTypes[blockId].GetTextureID(i + 6), true);
 
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
@@ -129,7 +133,7 @@ public class HexChunk : MonoBehaviour
         }
     }
     
-    private void AddTexture(int textureId)
+    private void AddTexture(int textureId, bool isHexFace)
     {
         float y = textureId / HexVoxel.TextureAtlasSizeInBlocks;
         float x = textureId - (y * HexVoxel.TextureAtlasSizeInBlocks);
@@ -137,12 +141,26 @@ public class HexChunk : MonoBehaviour
         x *= HexVoxel.NormalizedBlockTextureSize;
         y *= HexVoxel.NormalizedBlockTextureSize;
 
+        //makes texture ids start at the top instead of the bottom
         y = 1f - y - HexVoxel.NormalizedBlockTextureSize;
-        
-        uvs.Add(new Vector2(x, y));
-        uvs.Add(new Vector2(x, y + HexVoxel.NormalizedBlockTextureSize));
-        uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y));
-        uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y + HexVoxel.NormalizedBlockTextureSize));
+
+        if (!isHexFace)
+        {
+            uvs.Add(new Vector2(x, y));
+            uvs.Add(new Vector2(x, y + HexVoxel.NormalizedBlockTextureSize));
+            uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y));
+            uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y + HexVoxel.NormalizedBlockTextureSize));
+        }
+        else
+        {
+            uvs.Add(new Vector2(x, y + (HexVoxel.NormalizedBlockTextureSize / 2)));
+            uvs.Add( new Vector2(x + (HexVoxel.NormalizedBlockTextureSize / 4), y + HexVoxel.NormalizedBlockTextureSize));
+            uvs.Add(new Vector2(x + (HexVoxel.NormalizedBlockTextureSize / 4), y));
+            uvs.Add(new Vector2(x + (HexVoxel.NormalizedBlockTextureSize * 0.75f), y + HexVoxel.NormalizedBlockTextureSize));
+            uvs.Add(new Vector2(x + (HexVoxel.NormalizedBlockTextureSize * 0.75f), y));
+            uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y + (HexVoxel.NormalizedBlockTextureSize / 2)));
+
+        }
     }
 
     //creates the mesh from the provided voxel data
