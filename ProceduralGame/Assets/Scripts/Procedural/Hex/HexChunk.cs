@@ -1,13 +1,17 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class HexChunk : MonoBehaviour
+public class HexChunk
 {
+    public HexChunkCoord chunkCoord;
+
+    GameObject chunkObject;
+    MeshRenderer meshRenderer;
+    MeshFilter  meshFilter;
+
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
-    public MeshFilter meshFilter => GetComponent<MeshFilter>();
 
     public static readonly int chunkWidth = 5;
     public static readonly int chunkHeight = 10;
@@ -15,11 +19,33 @@ public class HexChunk : MonoBehaviour
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
     private HexWorld world;
 
-    private void Start()
-    {
-        world = GameObject.Find("HexWorld").GetComponent<HexWorld>();
-        PopulateVoxelMap();
+    public Vector3 position => chunkObject.transform.position; 
 
+    public bool isActive
+    {
+        get => chunkObject.activeSelf;
+        set => chunkObject.SetActive(value);
+    }
+
+    public HexChunk(HexWorld _world, HexChunkCoord _coord)
+    {
+        chunkCoord = _coord;
+        world = _world;
+        chunkObject = new GameObject();
+        meshFilter = chunkObject.AddComponent<MeshFilter>();
+        meshRenderer = chunkObject.AddComponent<MeshRenderer>();
+        meshRenderer.material = world.mat;
+        chunkObject.transform.SetParent(world.transform);
+        
+        //sets the offsets for each chunk
+        float posX = (chunkCoord.x + chunkCoord.z * 0.5f - chunkCoord.z / 2) * (HexVoxel.innerRadius * 2f);
+        float posZ = chunkCoord.z * (HexVoxel.outerRadius * 1.5f);
+
+        //moves the chunk
+        chunkObject.transform.position = new Vector3(chunkWidth * posX, 0f, chunkWidth * posZ);
+        chunkObject.name = "Chunk " + chunkCoord.x + " " + chunkCoord.z;
+
+        PopulateVoxelMap();
         CreateChunk();
         CreateMesh();
     }
@@ -27,6 +53,7 @@ public class HexChunk : MonoBehaviour
     //creates a list containing each voxel position
     private void PopulateVoxelMap()
     {
+
         for (int y = 0; y < chunkHeight; y++)
         {
             for (int z = 0; z < chunkWidth; z++)
@@ -34,22 +61,26 @@ public class HexChunk : MonoBehaviour
                 for (int x = 0; x < chunkWidth; x++)
                 {
                     var coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
-                    if(y < 1)
-                        voxelCoords.Add(coord, 0);
-                    else if (y == chunkHeight - 1)
-                        voxelCoords.Add(coord, 2);
-                    else 
-                        voxelCoords.Add(coord, 1);
+                    voxelCoords.Add(coord, world.GetVoxel(new Vector3(x,y,z)));
                 }
             }
         }
     }
 
-    //checks if the provided coordinates are occupied by a voxel
+    //checks if the given voxel is in this chunk
+    private bool IsVoxelInChunk(HexCoordinates coord)
+    {
+        return voxelCoords.ContainsKey(coord);
+    }
+
+    //checks if the voxel at the provided coordinates is solid
     private bool CheckVoxel(Vector4 pos)
     {
         var coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
-        return voxelCoords.ContainsKey(coord) && world.blockTypes[voxelCoords[coord]].isSolid;
+
+        if(!IsVoxelInChunk(coord))
+            return world.blockTypes[world.GetVoxel(pos + position)].isSolid;
+        return world.blockTypes[voxelCoords[coord]].isSolid;
     }
 
     //creates a chunk
@@ -115,7 +146,7 @@ public class HexChunk : MonoBehaviour
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 5]] + pos);
                 
                 //uvs for the hex face
-                AddTexture(world.blockTypes[blockId].GetTextureID(i + 6), true);
+                AddTexture(world.blockTypes[blockId].GetTextureID(i + HexVoxel.hexSideTris.GetLength(0)), true);
 
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
@@ -133,6 +164,7 @@ public class HexChunk : MonoBehaviour
         }
     }
     
+    //adds a texture and uv data to voxel
     private void AddTexture(int textureId, bool isHexFace)
     {
         float y = textureId / HexVoxel.TextureAtlasSizeInBlocks;
@@ -159,7 +191,6 @@ public class HexChunk : MonoBehaviour
             uvs.Add(new Vector2(x + (HexVoxel.NormalizedBlockTextureSize * 0.75f), y + HexVoxel.NormalizedBlockTextureSize));
             uvs.Add(new Vector2(x + (HexVoxel.NormalizedBlockTextureSize * 0.75f), y));
             uvs.Add(new Vector2(x + HexVoxel.NormalizedBlockTextureSize, y + (HexVoxel.NormalizedBlockTextureSize / 2)));
-
         }
     }
 
@@ -174,5 +205,17 @@ public class HexChunk : MonoBehaviour
         mesh.RecalculateNormals();
 
         meshFilter.mesh = mesh;
+    }
+}
+
+public class HexChunkCoord
+{
+    public int x;
+    public int z;
+
+    public HexChunkCoord(int _x, int _z)
+    {
+        x = _x;
+        z = _z;
     }
 }
