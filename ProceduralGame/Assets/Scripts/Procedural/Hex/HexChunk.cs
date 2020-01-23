@@ -1,11 +1,10 @@
 ﻿//https://observablehq.com/@sanderevers/hexagon-tiling-of-an-hexagonal-grid
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.iOS;
 
 public class HexChunk
 {
-    public HexChunkCoord chunkCoord;
+    public HexCoordinates chunkCoord;
 
     GameObject chunkObject;
     MeshRenderer meshRenderer;
@@ -15,7 +14,7 @@ public class HexChunk
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
-    public static readonly int chunkWidth = 3;
+    public static readonly int chunkWidth = 2;
     public static readonly int chunkHeight = 5;
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
@@ -29,7 +28,7 @@ public class HexChunk
         set => chunkObject.SetActive(value);
     }
 
-    public HexChunk(HexWorld _world, HexChunkCoord _coord)
+    public HexChunk(HexWorld _world, HexCoordinates _coord)
     {
         chunkCoord = _coord;
         world = _world;
@@ -40,12 +39,16 @@ public class HexChunk
         chunkObject.transform.SetParent(world.transform);
         
         //sets the offsets for each chunk
-        float posX = (chunkCoord.x + chunkCoord.z * 0.5f - chunkCoord.z / 2) * (HexVoxel.innerRadius * 2f);
-        float posZ = chunkCoord.z * (HexVoxel.outerRadius * 1.5f);
+        float chunkInner = 2f * chunkWidth * HexVoxel.outerRadius;
+        float chunkOuter = 2f * (chunkInner / 0.866025404f);
 
+        float width = chunkWidth * (2f * HexVoxel.innerRadius);
+        float posX = width * (3 / 2 * chunkCoord.z);
+        float posZ = width * ((Mathf.Sqrt(3) / 2) * chunkCoord.z + (Mathf.Sqrt(3) * chunkCoord.x));
+        
         //moves the chunk
-        chunkObject.transform.position = new Vector3(chunkWidth * posX, 0f, chunkWidth * posZ);
-        chunkObject.name = "Chunk " + chunkCoord.x + " " + chunkCoord.z;
+        chunkObject.transform.position = new Vector3(posX, 0f, posZ);
+        chunkObject.name = $"Chunk {chunkCoord.x}, {chunkCoord.w}, {chunkCoord.z}";
 
         PopulateVoxelMap();
         CreateChunk();
@@ -210,17 +213,5 @@ public class HexChunk
         mesh.RecalculateNormals();
 
         meshFilter.mesh = mesh;
-    }
-}
-
-public class HexChunkCoord
-{
-    public int x;
-    public int z;
-
-    public HexChunkCoord(int _x, int _z)
-    {
-        x = _x;
-        z = _z;
     }
 }

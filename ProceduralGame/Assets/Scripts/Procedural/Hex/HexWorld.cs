@@ -6,7 +6,7 @@ public class HexWorld : MonoBehaviour
 {
     public Material mat;
     public HexBlockType[] blockTypes;
-    public HexChunk[,] chunks = new HexChunk[WorldSizeInChunks, WorldSizeInChunks];
+    public Dictionary<HexChunk, byte> chunks = new Dictionary<HexChunk, byte>();
     public static readonly int WorldSizeInChunks = 1;
     public static int WorldSizeInVoxels => WorldSizeInChunks * HexChunk.chunkWidth;
 
@@ -18,19 +18,30 @@ public class HexWorld : MonoBehaviour
     //generates the entire world
     private void GenerateWorld()
     {
-        for (int x = 0; x < WorldSizeInChunks; x++)
+        for (int x = -WorldSizeInChunks; x <= WorldSizeInChunks; x++)
         {
-            for (int z = 0; z < WorldSizeInChunks; z++)
+            int z1 = Mathf.Max(-WorldSizeInChunks, -x - WorldSizeInChunks);
+            int z2 = Mathf.Min(WorldSizeInChunks, -x + WorldSizeInChunks);
+            for (int z = z1; z <= z2; z++)
             {
+                var coord = new HexCoordinates(x,0,z);
                 CreateNewChunk(x, z);
             }
         }
+        
+        // for (int x = 0; x < WorldSizeInChunks; x++)
+        // {
+        //     for (int z = 0; z < WorldSizeInChunks; z++)
+        //     {
+        //         CreateNewChunk(x, z);
+        //     }
+        // }
     }
 
     //creates a new chunk
     private void CreateNewChunk(int x, int z)
     {
-        chunks[x, z] = new HexChunk(this, new HexChunkCoord(x, z));
+        chunks.Add(new HexChunk(this, new HexCoordinates(x, 0, z)), 0);
     }
 
     //calculates what type of block the voxel is
@@ -48,11 +59,9 @@ public class HexWorld : MonoBehaviour
     }
 
     //checks if the provided chunk is in the world
-    private bool IsChunkInWorld(HexChunkCoord coord)
+    private bool IsChunkInWorld(HexChunk chunk)
     {
-        if(coord.x > 0 && coord.x < WorldSizeInChunks - 1 && coord.z > 0 && coord.z < WorldSizeInChunks - 1)
-            return true;
-        return false;
+        return chunks.ContainsKey(chunk);
     }
 
     //checks if the given voxel is in the world
