@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿//https://observablehq.com/@sanderevers/hexagon-tiling-of-an-hexagonal-grid
+using System.Collections.Generic;
 using UnityEngine;
 
 public class HexChunk
@@ -13,8 +14,8 @@ public class HexChunk
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
-    public static readonly int chunkWidth = 5;
-    public static readonly int chunkHeight = 10;
+    public static readonly int chunkWidth = 3;
+    public static readonly int chunkHeight = 1;
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
     private HexWorld world;
@@ -53,14 +54,15 @@ public class HexChunk
     //creates a list containing each voxel position
     private void PopulateVoxelMap()
     {
-
         for (int y = 0; y < chunkHeight; y++)
         {
-            for (int z = 0; z < chunkWidth; z++)
+            for (int x = -chunkWidth; x <= chunkWidth; x++)
             {
-                for (int x = 0; x < chunkWidth; x++)
+                int z1 = Mathf.Max(-chunkWidth, -x - chunkWidth);
+                int z2 = Mathf.Min(chunkWidth, -x + chunkWidth);
+                for (int z = z1; z <= z2; z++)
                 {
-                    var coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
+                    var coord = new HexCoordinates(x,y,z);
                     voxelCoords.Add(coord, world.GetVoxel(new Vector3(x,y,z)));
                 }
             }
@@ -78,26 +80,23 @@ public class HexChunk
     {
         var coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
 
-        if(!IsVoxelInChunk(coord))
-            return world.blockTypes[world.GetVoxel(pos + position)].isSolid;
-        return world.blockTypes[voxelCoords[coord]].isSolid;
+
+        //if(!IsVoxelInChunk(coord))
+            //return world.blockTypes[world.GetVoxel(new Vector3(pos.x, pos.y, pos.z) + position)].isSolid;
+        return IsVoxelInChunk(coord) && world.blockTypes[voxelCoords[coord]].isSolid;
     }
 
     //creates a chunk
     private void CreateChunk()
     {
-        for (int y = 0; y < chunkHeight; y++)
+        foreach (var item in voxelCoords)
         {
-            for (int z = 0; z < chunkWidth; z++)
-            {
-                for (int x = 0; x < chunkWidth; x++)
-                {
-                    float posX = (x + z * 0.5f - z / 2) * (HexVoxel.innerRadius * 2f);
-                    float posZ = z * (HexVoxel.outerRadius * 1.5f);
-                    var coord = HexCoordinates.FromOffsetCoordinates(x,y,z);
-                    CreateVoxelMeshData(new Vector3(posX, y, posZ), new Vector4(coord.x, coord.w,  coord.z, coord.y));
-                }
-            }
+            float posX = HexVoxel.outerRadius * 1.5f * (Mathf.Sqrt(3) * item.Key.z  +  Mathf.Sqrt(3)/2 * item.Key.x);
+            float posZ = HexVoxel.outerRadius * 1.5f * (3 / 2 * item.Key.x);
+            //int x = item.Key.x + (item.Key.z * 2);
+            //float posX = (x + item.Key.z * 0.5f - item.Key.z / 2) * (HexVoxel.innerRadius * 2f);
+            //float posZ = item.Key.z * (HexVoxel.outerRadius * 1.5f);
+            CreateVoxelMeshData(new Vector3(posX, item.Key.y, posZ), new Vector4(item.Key.x, item.Key.w, item.Key.z, item.Key.y));
         }
     }
 

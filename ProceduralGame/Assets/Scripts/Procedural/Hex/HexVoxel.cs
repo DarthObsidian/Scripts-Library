@@ -80,4 +80,27 @@ public struct HexCoordinates
     {
         return new HexCoordinates(x - z/2, y, z);
     }
+    
+    public static bool operator == (HexCoordinates a, HexCoordinates b)
+    {
+        return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+    }
+
+    public static bool operator != (HexCoordinates a, HexCoordinates b)
+    {
+        return !(a==b);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || !this.GetType().Equals(obj.GetType()))
+            return false;
+        HexCoordinates hexCoord = (HexCoordinates) obj;
+        return (this == hexCoord);
+    }
+
+    public override int GetHashCode()
+    {
+        return x ^ y ^ z ^ w;
+    }
 }

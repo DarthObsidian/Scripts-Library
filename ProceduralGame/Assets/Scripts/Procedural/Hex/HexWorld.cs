@@ -7,7 +7,7 @@ public class HexWorld : MonoBehaviour
     public Material mat;
     public HexBlockType[] blockTypes;
     public HexChunk[,] chunks = new HexChunk[WorldSizeInChunks, WorldSizeInChunks];
-    public static readonly int WorldSizeInChunks = 5;
+    public static readonly int WorldSizeInChunks = 1;
     public static int WorldSizeInVoxels => WorldSizeInChunks * HexChunk.chunkWidth;
 
     private void Start()
@@ -18,9 +18,9 @@ public class HexWorld : MonoBehaviour
     //generates the entire world
     private void GenerateWorld()
     {
-        for (int x = 0; x < WorldSizeInChunks - 1; x++)
+        for (int x = 0; x < WorldSizeInChunks; x++)
         {
-            for (int z = 0; z < WorldSizeInChunks - 1; z++)
+            for (int z = 0; z < WorldSizeInChunks; z++)
             {
                 CreateNewChunk(x, z);
             }
@@ -36,7 +36,7 @@ public class HexWorld : MonoBehaviour
     //calculates what type of block the voxel is
     public byte GetVoxel (Vector3 pos)
     {
-        if(IsVoxelInWorld(pos))
+        if(!IsVoxelInWorld(pos))
             return 0;
 
         if(pos.y < 1)
@@ -58,7 +58,7 @@ public class HexWorld : MonoBehaviour
     //checks if the given voxel is in the world
     private bool IsVoxelInWorld(Vector3 pos)
     {
-        if(pos.x > 0 && pos.x < WorldSizeInVoxels - 1 && pos.y > 0 && pos.y < HexChunk.chunkHeight - 1 && pos.z > 0 && pos.z < WorldSizeInVoxels - 1)
+        if(pos.x >= 0 && pos.x < WorldSizeInVoxels && pos.y >= 0 && pos.y < HexChunk.chunkHeight && pos.z >= 0 && pos.z < WorldSizeInVoxels)
             return true;
         return false;
     }
