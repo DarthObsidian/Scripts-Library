@@ -1,6 +1,7 @@
 ﻿//https://observablehq.com/@sanderevers/hexagon-tiling-of-an-hexagonal-grid
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.iOS;
 
 public class HexChunk
 {
@@ -15,7 +16,7 @@ public class HexChunk
     private List<Vector2> uvs = new List<Vector2>();
 
     public static readonly int chunkWidth = 3;
-    public static readonly int chunkHeight = 1;
+    public static readonly int chunkHeight = 5;
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
     private HexWorld world;
@@ -63,7 +64,7 @@ public class HexChunk
                 for (int z = z1; z <= z2; z++)
                 {
                     var coord = new HexCoordinates(x,y,z);
-                    voxelCoords.Add(coord, world.GetVoxel(new Vector3(x,y,z)));
+                    voxelCoords.Add(coord, 1);
                 }
             }
         }
@@ -80,10 +81,9 @@ public class HexChunk
     {
         var coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
 
-
         //if(!IsVoxelInChunk(coord))
             //return world.blockTypes[world.GetVoxel(new Vector3(pos.x, pos.y, pos.z) + position)].isSolid;
-        return IsVoxelInChunk(coord) && world.blockTypes[voxelCoords[coord]].isSolid;
+        return IsVoxelInChunk(coord) /*&& world.blockTypes[voxelCoords[coord]].isSolid*/;
     }
 
     //creates a chunk
@@ -91,11 +91,8 @@ public class HexChunk
     {
         foreach (var item in voxelCoords)
         {
-            float posX = HexVoxel.outerRadius * 1.5f * (Mathf.Sqrt(3) * item.Key.z  +  Mathf.Sqrt(3)/2 * item.Key.x);
+            float posX = HexVoxel.outerRadius * (Mathf.Sqrt(3) * item.Key.z  +  Mathf.Sqrt(3)/2 * item.Key.x);
             float posZ = HexVoxel.outerRadius * 1.5f * (3 / 2 * item.Key.x);
-            //int x = item.Key.x + (item.Key.z * 2);
-            //float posX = (x + item.Key.z * 0.5f - item.Key.z / 2) * (HexVoxel.innerRadius * 2f);
-            //float posZ = item.Key.z * (HexVoxel.outerRadius * 1.5f);
             CreateVoxelMeshData(new Vector3(posX, item.Key.y, posZ), new Vector4(item.Key.x, item.Key.w, item.Key.z, item.Key.y));
         }
     }
@@ -103,6 +100,15 @@ public class HexChunk
     //Creates the vertex, tri, and uv data for each voxel
     private void CreateVoxelMeshData(Vector3 pos, Vector4 checkPos)
     {
+        // var textObj = new GameObject();
+        // var text = textObj.AddComponent<TextMesh>();
+        // text.text = $"{checkPos.x}, {checkPos.z}, {checkPos.y}";
+        // text.anchor = TextAnchor.MiddleCenter;
+        // textObj.transform.position = pos;
+        // textObj.name = text.text;
+        // text.fontSize = 200;
+        // text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
+        
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)
         {
             //only add the face if it is visible

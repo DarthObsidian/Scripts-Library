@@ -99,7 +99,6 @@ public class World : MonoBehaviour
             return 2;
     }
     
-    
     private void CreateNewChunk(int x, int z)
     {
         chunks[x, z] = new Chunk(new ChunkCoord(x, z), this);

@@ -49,12 +49,12 @@ public static class HexVoxel
     public static readonly Vector4[] faceChecks =
     {
         //x,w,z,y
-        new Vector4(0, -1, 1, 0),   //top right
-        new Vector4(1, -1, 0, 0),   //right
-        new Vector4(1, 0, -1, 0),   //bottom right
-        new Vector4(0, 1, -1, 0),   //bottom left
-        new Vector4(-1, 1, 0, 0),   //left
-        new Vector4(-1, 0, 1, 0),   //top left
+        new Vector4(1, -1, 0, 0),   //top right
+        new Vector4(0, -1, 1, 0),   //right
+        new Vector4(-1, 0, 1, 0),   //bottom right
+        new Vector4(-1, 1, 0, 0),   //bottom left
+        new Vector4(0, 1, -1, 0),   //left
+        new Vector4(1, 0, -1, 0),   //top left
         new Vector4(0, 0, 0, 1),    //top
         new Vector4(0, 0, 0, -1),   //bottom
     };
@@ -63,9 +63,9 @@ public static class HexVoxel
 [System.Serializable]
 public struct HexCoordinates
 {
-    public int x {get; private set;}
-    public int y {get; private set;}
-    public int z {get; private set;}
+    public int x {get;}
+    public int y {get;}
+    public int z {get;}
     public int w => -x -z;
 
     public HexCoordinates (int _x, int _y, int _z)
@@ -93,9 +93,9 @@ public struct HexCoordinates
 
     public override bool Equals(object obj)
     {
-        if (obj == null || !this.GetType().Equals(obj.GetType()))
+        if (obj == null || GetType() != obj.GetType())
             return false;
-        HexCoordinates hexCoord = (HexCoordinates) obj;
+        var hexCoord = (HexCoordinates) obj;
         return (this == hexCoord);
     }
 
