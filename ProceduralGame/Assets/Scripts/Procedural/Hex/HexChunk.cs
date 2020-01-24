@@ -38,13 +38,22 @@ public class HexChunk
         meshRenderer.material = world.mat;
         chunkObject.transform.SetParent(world.transform);
         
+        int num = 1;
+        for (int i = 0; i < chunkWidth; i++)
+        {
+            if (i % 2 == 0)
+                num += 2;
+            else 
+                num +=1;
+        }
+
         //sets the offsets for each chunk
-        float chunkInner = 2f * chunkWidth * HexVoxel.outerRadius;
-        float chunkOuter = 2f * (chunkInner / 0.866025404f);
+        float chunkInner = (num * HexVoxel.outerRadius);
+        float chunkOuter = (chunkInner / 0.866025404f);
 
         float width = chunkWidth * (2f * HexVoxel.innerRadius);
-        float posX = width * (3 / 2 * chunkCoord.z);
-        float posZ = width * ((Mathf.Sqrt(3) / 2) * chunkCoord.z + (Mathf.Sqrt(3) * chunkCoord.x));
+        float posX = chunkOuter * 1.5f * (3 / 2 * chunkCoord.z);
+        float posZ = chunkOuter * ((Mathf.Sqrt(3) / 2) * chunkCoord.z + (Mathf.Sqrt(3) * chunkCoord.x));
         
         //moves the chunk
         chunkObject.transform.position = new Vector3(posX, 0f, posZ);
