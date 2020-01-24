@@ -28,14 +28,6 @@ public class HexWorld : MonoBehaviour
                 CreateNewChunk(x, z);
             }
         }
-        
-        // for (int x = 0; x < WorldSizeInChunks; x++)
-        // {
-        //     for (int z = 0; z < WorldSizeInChunks; z++)
-        //     {
-        //         CreateNewChunk(x, z);
-        //     }
-        // }
     }
 
     //creates a new chunk

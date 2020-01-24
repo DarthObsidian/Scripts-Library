@@ -14,7 +14,7 @@ public class HexChunk
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
-    public static readonly int chunkWidth = 2;
+    public static readonly int chunkWidth = 5;
     public static readonly int chunkHeight = 5;
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
@@ -38,20 +38,21 @@ public class HexChunk
         meshRenderer.material = world.mat;
         chunkObject.transform.SetParent(world.transform);
         
-        int num = 1;
-        for (int i = 0; i < chunkWidth; i++)
+        int num = 0;
+        for (int i = 0; i <= chunkWidth; i++)
         {
-            if (i % 2 == 0)
+            if (i % 2 == 0 && i != 0)
                 num += 2;
             else 
                 num +=1;
+            Debug.Log($"{num}, {i}");
         }
 
         //sets the offsets for each chunk
-        float chunkInner = (num * HexVoxel.outerRadius);
+        float chunkInner = (num * HexVoxel.outerRadius) + HexVoxel.outerRadius * 0.25f;
         float chunkOuter = (chunkInner / 0.866025404f);
-
-        float width = chunkWidth * (2f * HexVoxel.innerRadius);
+        
+        //float width = chunkWidth * (2f * HexVoxel.innerRadius);
         float posX = chunkOuter * 1.5f * (3 / 2 * chunkCoord.z);
         float posZ = chunkOuter * ((Mathf.Sqrt(3) / 2) * chunkCoord.z + (Mathf.Sqrt(3) * chunkCoord.x));
         
@@ -62,6 +63,15 @@ public class HexChunk
         PopulateVoxelMap();
         CreateChunk();
         CreateMesh();
+        
+        var textObj = new GameObject();
+        var text = textObj.AddComponent<TextMesh>();
+        text.text = $"{_coord.x}, {_coord.z}, {_coord.y}";
+        text.anchor = TextAnchor.MiddleCenter;
+        textObj.transform.position = chunkObject.transform.position;
+        textObj.name = text.text;
+        text.fontSize = 200;
+        text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
     }
 
     //creates a list containing each voxel position
