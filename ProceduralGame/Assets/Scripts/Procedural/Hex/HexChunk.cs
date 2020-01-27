@@ -14,7 +14,7 @@ public class HexChunk
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
-    public static readonly int chunkWidth = 2;
+    public static readonly int chunkWidth = 3;
     public static readonly int chunkHeight = 5;
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
@@ -58,8 +58,8 @@ public class HexChunk
         float chunkOuter = (chunkInner / 0.866025404f);
 
         //calculates the position of the chunk
-        float posX = chunkOuter * 1.5f * (3 / 2 * chunkCoord.z);
-        float posZ = chunkOuter * ((Mathf.Sqrt(3) / 2) * chunkCoord.z + (Mathf.Sqrt(3) * chunkCoord.x));
+        float posX = chunkOuter * 1.5f * (3 / 2 * chunkCoord.z) + (HexVoxel.innerRadius * (chunkCoord.x + chunkCoord.z * 0.5f));
+        float posZ = chunkOuter * ((Mathf.Sqrt(3) / 2) * chunkCoord.z + (Mathf.Sqrt(3) * chunkCoord.x)) + (HexVoxel.innerRadius * 0.866025404f * (chunkCoord.x + chunkCoord.w));
         
         //moves the chunk
         chunkObject.transform.position = new Vector3(posX, 0f, posZ);
@@ -127,6 +127,7 @@ public class HexChunk
         // text.fontSize = 200;
         // text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
         
+        //sets visibility, uvs, vertecies, and tris for square faces
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)
         {
             //only add the face if it is visible
@@ -141,7 +142,6 @@ public class HexChunk
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexSideTris[i, 2]] + pos);
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexSideTris[i, 3]] + pos);
 
-                //uvs for the square faces
                 AddTexture(world.blockTypes[blockId].GetTextureID(i), false);
 
                 triangles.Add(vertexIndex);
@@ -153,6 +153,7 @@ public class HexChunk
             }
         }
 
+        //sets visibility, uvs, vertecies, and tris for hex faces
         for (int i = 0; i < HexVoxel.hexTopTris.GetLength(0); i++)
         {
             if(!CheckVoxel(checkPos + HexVoxel.faceChecks[i + HexVoxel.hexSideTris.GetLength(0)]))
@@ -168,7 +169,6 @@ public class HexChunk
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 4]] + pos);
                 vertices.Add(HexVoxel.hexVerts[HexVoxel.hexTopTris[i, 5]] + pos);
                 
-                //uvs for the hex face
                 AddTexture(world.blockTypes[blockId].GetTextureID(i + HexVoxel.hexSideTris.GetLength(0)), true);
 
                 triangles.Add(vertexIndex);
@@ -199,6 +199,7 @@ public class HexChunk
         //makes texture ids start at the top instead of the bottom
         y = 1f - y - HexVoxel.NormalizedBlockTextureSize;
 
+        //only hex faces have six uvs points
         if (!isHexFace)
         {
             uvs.Add(new Vector2(x, y));
