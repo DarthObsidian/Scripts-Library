@@ -17,13 +17,13 @@ public class HexChunk
     public static readonly int chunkWidth = 2;
     public static readonly int chunkHeight = 1;
 
-    public static int chunkArea => ((3 * (chunkWidth^2)) + (3*chunkWidth) + 1);
+    public static int chunkArea => ((3 * (int)Mathf.Pow(chunkWidth, 2)) + (3*chunkWidth) + 1);
     public static int chunkShift => ((3 * chunkWidth) + 2);
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
     private HexWorld world;
 
-    public Vector3 position => chunkObject.transform.position; 
+    //public Vector3 position => chunkObject.transform.position; 
 
     public bool isActive
     {
@@ -52,7 +52,7 @@ public class HexChunk
         }
 
         //finds the radius of each chunk hex
-        float chunkInner = 0;
+        float chunkInner;
         if(chunkWidth % 2 == 0)
             chunkInner = (num * HexVoxel.outerRadius) - (HexVoxel.outerRadius * 0.25f);
         else
@@ -118,19 +118,37 @@ public class HexChunk
         }
     }
 
+    //calculates the position of the hex as a single integer
+    //used to find voxels in another chunk
     public int CalcHexmod(HexCoordinates coord)
     {
         int num = coord.x + chunkShift * coord.z;
-        Debug.Log("AREA: " + chunkArea);
-        int hexmod = mod(num, chunkArea);
+        int hexmod = Mod(num, chunkArea);
         return hexmod;
     }
 
-    public int mod(int a, int b)
+    //finds the hexmod in the desired direction
+    public int CalcDesiredHexmod(int currentHexmod, HexCoordinates dir)
     {
-        int r = a%b;
-        Debug.Log(r + " " + b);
-        return r<0 ? r+b : r;
+        return Mod(currentHexmod + CalcHexmod(dir), chunkArea);
+    }
+
+    //finds the original coordinates from a hexmod coord
+    public HexCoordinates CalcCoordFromHexmod(int hexmod, int height)
+    {
+        int ms = (hexmod + chunkWidth) / chunkShift;
+        int mcs = (hexmod + 2 * chunkWidth) / (chunkShift - 1);
+        int z = ms * (chunkWidth + 1) + mcs * -chunkWidth;
+        int x = hexmod + ms * (-2 * chunkWidth - 1) + mcs * (-chunkWidth - 1);
+        int y = -hexmod + ms * chunkWidth + mcs * (2 * chunkWidth + 1);
+        return new HexCoordinates(x, height, z);
+    }
+
+    //used to replaced the % operator as it does negative numbers incorrectly
+    private int Mod(int a, int b)
+    {
+        int r = a % b;
+        return r < 0 ? r + b : r;
     }
 
     //Creates the vertex, tri, and uv data for each voxel
@@ -139,12 +157,15 @@ public class HexChunk
         var textObj = new GameObject();
         var text = textObj.AddComponent<TextMesh>();
         int mod = CalcHexmod(new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z));
-        text.text = $"{mod}";
+        HexCoordinates myCoord = CalcCoordFromHexmod(mod, (int)checkPos.w);
+        
+        Debug.Log($"Original: {checkPos.x}, {checkPos.y}, {checkPos.z} New: {myCoord.x}, {myCoord.w}, {myCoord.z}");
+        text.text = $"{myCoord.x}, {myCoord.w}, {myCoord.z}";
         text.anchor = TextAnchor.MiddleCenter;
         textObj.transform.position = pos;
         textObj.name = text.text;
         text.fontSize = 200;
-        text.transform.localScale = new Vector3(0.1f,0.1f,0.1f);
+        text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
         
         //sets visibility, uvs, vertecies, and tris for square faces
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)
