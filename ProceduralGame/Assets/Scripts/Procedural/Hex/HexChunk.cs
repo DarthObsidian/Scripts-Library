@@ -14,8 +14,11 @@ public class HexChunk
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
-    public static readonly int chunkWidth = 3;
-    public static readonly int chunkHeight = 5;
+    public static readonly int chunkWidth = 2;
+    public static readonly int chunkHeight = 1;
+
+    public static int chunkArea => ((3 * (chunkWidth^2)) + (3*chunkWidth) + 1);
+    public static int chunkShift => ((3 * chunkWidth) + 2);
 
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
     private HexWorld world;
@@ -115,17 +118,33 @@ public class HexChunk
         }
     }
 
+    public int CalcHexmod(HexCoordinates coord)
+    {
+        int num = coord.x + chunkShift * coord.z;
+        Debug.Log("AREA: " + chunkArea);
+        int hexmod = mod(num, chunkArea);
+        return hexmod;
+    }
+
+    public int mod(int a, int b)
+    {
+        int r = a%b;
+        Debug.Log(r + " " + b);
+        return r<0 ? r+b : r;
+    }
+
     //Creates the vertex, tri, and uv data for each voxel
     private void CreateVoxelMeshData(Vector3 pos, Vector4 checkPos)
     {
-        // var textObj = new GameObject();
-        // var text = textObj.AddComponent<TextMesh>();
-        // text.text = $"{checkPos.x}, {checkPos.z}, {checkPos.y}";
-        // text.anchor = TextAnchor.MiddleCenter;
-        // textObj.transform.position = pos;
-        // textObj.name = text.text;
-        // text.fontSize = 200;
-        // text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
+        var textObj = new GameObject();
+        var text = textObj.AddComponent<TextMesh>();
+        int mod = CalcHexmod(new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z));
+        text.text = $"{mod}";
+        text.anchor = TextAnchor.MiddleCenter;
+        textObj.transform.position = pos;
+        textObj.name = text.text;
+        text.fontSize = 200;
+        text.transform.localScale = new Vector3(0.1f,0.1f,0.1f);
         
         //sets visibility, uvs, vertecies, and tris for square faces
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)

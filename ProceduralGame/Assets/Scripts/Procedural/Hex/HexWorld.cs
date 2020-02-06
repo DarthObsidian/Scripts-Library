@@ -7,7 +7,7 @@ public class HexWorld : MonoBehaviour
     public Material mat;
     public HexBlockType[] blockTypes;
     public Dictionary<HexChunk, byte> chunks = new Dictionary<HexChunk, byte>();
-    public static readonly int WorldSizeInChunks = 2;
+    public static readonly int WorldSizeInChunks = 0;
     public static int WorldSizeInVoxels => WorldSizeInChunks * HexChunk.chunkWidth;
 
     private void Start()
