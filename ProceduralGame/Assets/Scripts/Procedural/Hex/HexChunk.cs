@@ -15,7 +15,7 @@ public class HexChunk
     private List<Vector2> uvs = new List<Vector2>();
 
     public static readonly int chunkWidth = 2;
-    public static readonly int chunkHeight = 1;
+    public static readonly int chunkHeight = 5;
 
     public static int chunkArea => ((3 * (int)Mathf.Pow(chunkWidth, 2)) + (3*chunkWidth) + 1);
     public static int chunkShift => ((3 * chunkWidth) + 2);
@@ -23,7 +23,17 @@ public class HexChunk
     Dictionary<HexCoordinates, byte> voxelCoords = new Dictionary<HexCoordinates, byte>();
     private HexWorld world;
 
-    //public Vector3 position => chunkObject.transform.position; 
+    public Vector3 position => chunkObject.transform.position;
+
+    public HexCoordinates[] neighbors = 
+    {
+        new HexCoordinates(1, 0, 0),   //top right
+        new HexCoordinates(0, 0, 1),   //right
+        new HexCoordinates(-1, 0, 1),   //bottom right
+        new HexCoordinates(-1, 0, 0),   //bottom left
+        new HexCoordinates(0, 0, -1),   //left
+        new HexCoordinates(1, 0, -1)   //top left
+    };
 
     public bool isActive
     {
@@ -34,6 +44,12 @@ public class HexChunk
     public HexChunk(HexWorld _world, HexCoordinates _coord)
     {
         chunkCoord = _coord;
+
+        for (int i = 0; i < neighbors.Length; i++)
+        {
+            neighbors[i] += chunkCoord;
+        }
+
         world = _world;
         chunkObject = new GameObject();
         meshFilter = chunkObject.AddComponent<MeshFilter>();
@@ -85,7 +101,8 @@ public class HexChunk
                 for (int z = z1; z <= z2; z++)
                 {
                     var coord = new HexCoordinates(x,y,z);
-                    voxelCoords.Add(coord, 1);
+                    byte blockType = world.GetVoxel(coord, new HexCoordinates(0,0,0), this, true);
+                    voxelCoords.Add(coord, blockType);
                 }
             }
         }
@@ -106,10 +123,10 @@ public class HexChunk
         if(!IsVoxelInChunk(coord))
         {
             var hexDir = new HexCoordinates((int)dir.x, (int)dir.w, (int)dir.z);
-            var originalCoord = new HexCoordinates((int)originalPos.x, (int)originalPos.w, (int)originalPos.z));
+            var originalCoord = new HexCoordinates((int)originalPos.x, (int)originalPos.w, (int)originalPos.z);
             return world.blockTypes[world.GetVoxel(originalCoord, hexDir, this)].isSolid;
         }
-        return IsVoxelInChunk(coord) /*&& world.blockTypes[voxelCoords[coord]].isSolid*/;
+        return IsVoxelInChunk(coord) && world.blockTypes[voxelCoords[coord]].isSolid;
     }
 
     //creates a chunk
@@ -117,6 +134,7 @@ public class HexChunk
     {
         foreach (var item in voxelCoords)
         {
+            //gets the position that a voxel should be relative to the chunk
             float posX = HexVoxel.outerRadius * (Mathf.Sqrt(3) * item.Key.z  +  Mathf.Sqrt(3)/2 * item.Key.x);
             float posZ = HexVoxel.outerRadius * 1.5f * (3 / 2 * item.Key.x);
             CreateVoxelMeshData(new Vector3(posX, item.Key.y, posZ), new Vector4(item.Key.x, item.Key.w, item.Key.z, item.Key.y));
@@ -159,18 +177,18 @@ public class HexChunk
     //Creates the vertex, tri, and uv data for each voxel
     private void CreateVoxelMeshData(Vector3 pos, Vector4 checkPos)
     {
-        var textObj = new GameObject();
-        var text = textObj.AddComponent<TextMesh>();
-        int mod = CalcHexmod(new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z));
-        HexCoordinates myCoord = CalcCoordFromHexmod(mod, (int)checkPos.w);
+        // var textObj = new GameObject();
+        // var text = textObj.AddComponent<TextMesh>();
+        // int mod = CalcHexmod(new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z));
+        // HexCoordinates myCoord = CalcCoordFromHexmod(mod, (int)checkPos.w);
         
-        Debug.Log($"Original: {checkPos.x}, {checkPos.y}, {checkPos.z} New: {myCoord.x}, {myCoord.w}, {myCoord.z}");
-        text.text = $"{myCoord.x}, {myCoord.w}, {myCoord.z}";
-        text.anchor = TextAnchor.MiddleCenter;
-        textObj.transform.position = pos;
-        textObj.name = text.text;
-        text.fontSize = 200;
-        text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
+        // Debug.Log($"Original: {checkPos.x}, {checkPos.y}, {checkPos.z} New: {myCoord.x}, {myCoord.w}, {myCoord.z}");
+        // text.text = $"{myCoord.x}, {myCoord.w}, {myCoord.z}";
+        // text.anchor = TextAnchor.MiddleCenter;
+        // textObj.transform.position = pos;
+        // textObj.name = text.text;
+        // text.fontSize = 200;
+        // text.transform.localScale = new Vector3(0.02f,0.02f,0.02f);
         
         //sets visibility, uvs, vertecies, and tris for square faces
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)

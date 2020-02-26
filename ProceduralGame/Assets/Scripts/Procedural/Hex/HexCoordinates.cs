@@ -29,6 +29,11 @@ public struct HexCoordinates
         return !(a==b);
     }
 
+    public static HexCoordinates operator + (HexCoordinates a, HexCoordinates b)
+    {
+        return new HexCoordinates(a.x + b.x, a.y + b.y, a.z + b.z);
+    }
+
     public override bool Equals(object obj)
     {
         if (obj == null || GetType() != obj.GetType())

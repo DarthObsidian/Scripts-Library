@@ -6,7 +6,7 @@ public class HexWorld : MonoBehaviour
     public Material mat;
     public HexBlockType[] blockTypes;
     public Dictionary<HexChunk, byte> chunks = new Dictionary<HexChunk, byte>();
-    public static readonly int WorldSizeInChunks = 0;
+    public static readonly int WorldSizeInChunks = 1;
     public static int WorldSizeInVoxels => WorldSizeInChunks * HexChunk.chunkWidth;
 
     private void Start()
@@ -36,9 +36,9 @@ public class HexWorld : MonoBehaviour
     }
 
     //calculates what type of block the voxel is
-    public byte GetVoxel (HexCoordinates coord, HexCoordinates dir, HexChunk chunk)
+    public byte GetVoxel(HexCoordinates coord, HexCoordinates dir, HexChunk chunk, bool initialize=false)
     {
-        if(!IsVoxelInWorld(coord, dir, chunk))
+        if(!IsVoxelInWorld(coord, dir, chunk) && !initialize)
             return 0;
 
         if(coord.y < 1)
@@ -56,17 +56,34 @@ public class HexWorld : MonoBehaviour
     }
 
     //checks if the given voxel is in the world
-    private bool IsVoxelInWorld(Vector3 pos)
-    {
-        if(pos.x >= 0 && pos.x < WorldSizeInVoxels && pos.y >= 0 && pos.y < HexChunk.chunkHeight && pos.z >= 0 && pos.z < WorldSizeInVoxels)
-            return true;
-        return false;
-    }
-
     private bool IsVoxelInWorld(HexCoordinates coord, HexCoordinates dir, HexChunk chunk)
     {
         int hexMod = HexChunk.CalcHexmod(coord);
-        int desiredHex = HexChunk.CalcDesiredHexmod(hexMod, dir);
+        HexCoordinates desiredHex = HexChunk.CalcCoordFromHexmod(HexChunk.CalcDesiredHexmod(hexMod, dir), coord.w);
+
+        var voxelPos = CalculatePos(coord) + chunk.position;
+        var nextVoxelPos = CalculatePos(desiredHex);
+
+        foreach(var item in chunk.neighbors)
+        {
+            foreach (var hexChunk in chunks)
+            {
+                Debug.Log($"{voxelPos} : {nextVoxelPos + hexChunk.Key.position}");
+                if(hexChunk.Key.chunkCoord == item && Vector3.Distance(voxelPos, nextVoxelPos + hexChunk.Key.position) <= HexVoxel.outerRadius)
+                {
+                    Debug.Log($"voxel found: {desiredHex.x}, {desiredHex.y}, {desiredHex.z} in {hexChunk.Key} at pos {item.x}, {item.y}, {item.z}");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Vector3 CalculatePos(HexCoordinates coord)
+    {
+        float posX = HexVoxel.outerRadius * (Mathf.Sqrt(3) * coord.z  +  Mathf.Sqrt(3)/2 * coord.x);
+        float posZ = HexVoxel.outerRadius * 1.5f * (3 / 2 * coord.x);
+        return new Vector3(posX, coord.y, posZ);
     }
 }
 
