@@ -98,12 +98,17 @@ public class HexChunk
     }
 
     //checks if the voxel at the provided coordinates is solid
-    private bool CheckVoxel(Vector4 pos)
+    private bool CheckVoxel(Vector4 originalPos, Vector4 dir)
     {
+        var pos = originalPos + dir;
         var coord = new HexCoordinates((int)pos.x, (int)pos.w, (int)pos.z);
 
-        //if(!IsVoxelInChunk(coord))
-            //return world.blockTypes[world.GetVoxel(new Vector3(pos.x, pos.y, pos.z) + position)].isSolid;
+        if(!IsVoxelInChunk(coord))
+        {
+            var hexDir = new HexCoordinates((int)dir.x, (int)dir.w, (int)dir.z);
+            var originalCoord = new HexCoordinates((int)originalPos.x, (int)originalPos.w, (int)originalPos.z));
+            return world.blockTypes[world.GetVoxel(originalCoord, hexDir, this)].isSolid;
+        }
         return IsVoxelInChunk(coord) /*&& world.blockTypes[voxelCoords[coord]].isSolid*/;
     }
 
@@ -120,7 +125,7 @@ public class HexChunk
 
     //calculates the position of the hex as a single integer
     //used to find voxels in another chunk
-    public int CalcHexmod(HexCoordinates coord)
+    public static int CalcHexmod(HexCoordinates coord)
     {
         int num = coord.x + chunkShift * coord.z;
         int hexmod = Mod(num, chunkArea);
@@ -128,13 +133,13 @@ public class HexChunk
     }
 
     //finds the hexmod in the desired direction
-    public int CalcDesiredHexmod(int currentHexmod, HexCoordinates dir)
+    public static int CalcDesiredHexmod(int currentHexmod, HexCoordinates dir)
     {
         return Mod(currentHexmod + CalcHexmod(dir), chunkArea);
     }
 
     //finds the original coordinates from a hexmod coord
-    public HexCoordinates CalcCoordFromHexmod(int hexmod, int height)
+    public static HexCoordinates CalcCoordFromHexmod(int hexmod, int height)
     {
         int ms = (hexmod + chunkWidth) / chunkShift;
         int mcs = (hexmod + 2 * chunkWidth) / (chunkShift - 1);
@@ -145,7 +150,7 @@ public class HexChunk
     }
 
     //used to replaced the % operator as it does negative numbers incorrectly
-    private int Mod(int a, int b)
+    private static int Mod(int a, int b)
     {
         int r = a % b;
         return r < 0 ? r + b : r;
@@ -171,7 +176,7 @@ public class HexChunk
         for (int i = 0; i < HexVoxel.hexSideTris.GetLength(0); i++)
         {
             //only add the face if it is visible
-            if(!CheckVoxel(checkPos + HexVoxel.faceChecks[i]))
+            if(!CheckVoxel(checkPos, HexVoxel.faceChecks[i]))
             {
                 var coord = new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z);
                 byte blockId = voxelCoords[coord];
@@ -196,7 +201,7 @@ public class HexChunk
         //sets visibility, uvs, vertecies, and tris for hex faces
         for (int i = 0; i < HexVoxel.hexTopTris.GetLength(0); i++)
         {
-            if(!CheckVoxel(checkPos + HexVoxel.faceChecks[i + HexVoxel.hexSideTris.GetLength(0)]))
+            if(!CheckVoxel(checkPos, HexVoxel.faceChecks[i + HexVoxel.hexSideTris.GetLength(0)]))
             {
                 var coord = new HexCoordinates((int)checkPos.x, (int)checkPos.w, (int)checkPos.z);
                 byte blockId = voxelCoords[coord];

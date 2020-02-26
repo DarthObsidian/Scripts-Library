@@ -36,14 +36,14 @@ public class HexWorld : MonoBehaviour
     }
 
     //calculates what type of block the voxel is
-    public byte GetVoxel (Vector3 pos)
+    public byte GetVoxel (HexCoordinates coord, HexCoordinates dir, HexChunk chunk)
     {
-        if(!IsVoxelInWorld(pos))
+        if(!IsVoxelInWorld(coord, dir, chunk))
             return 0;
 
-        if(pos.y < 1)
+        if(coord.y < 1)
             return 1;
-        else if (pos.y == HexChunk.chunkHeight - 1)
+        else if (coord.y == HexChunk.chunkHeight - 1)
             return 3;
         else 
             return 2;
@@ -63,6 +63,11 @@ public class HexWorld : MonoBehaviour
         return false;
     }
 
+    private bool IsVoxelInWorld(HexCoordinates coord, HexCoordinates dir, HexChunk chunk)
+    {
+        int hexMod = HexChunk.CalcHexmod(coord);
+        int desiredHex = HexChunk.CalcDesiredHexmod(hexMod, dir);
+    }
 }
 
 [System.Serializable]
