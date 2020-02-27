@@ -15,7 +15,7 @@ public class HexChunk
     private List<Vector2> uvs = new List<Vector2>();
 
     public static readonly int chunkWidth = 2;
-    public static readonly int chunkHeight = 5;
+    public static readonly int chunkHeight = 2;
 
     public static int chunkArea => ((3 * (int)Mathf.Pow(chunkWidth, 2)) + (3*chunkWidth) + 1);
     public static int chunkShift => ((3 * chunkWidth) + 2);
@@ -27,11 +27,11 @@ public class HexChunk
 
     public HexCoordinates[] neighbors = 
     {
-        new HexCoordinates(1, 0, 0),   //top right
-        new HexCoordinates(0, 0, 1),   //right
+        new HexCoordinates(1, 0, 0),   //top
+        new HexCoordinates(0, 0, 1),   // top right
         new HexCoordinates(-1, 0, 1),   //bottom right
-        new HexCoordinates(-1, 0, 0),   //bottom left
-        new HexCoordinates(0, 0, -1),   //left
+        new HexCoordinates(-1, 0, 0),   //bottom 
+        new HexCoordinates(0, 0, -1),   //bottom left
         new HexCoordinates(1, 0, -1)   //top left
     };
 

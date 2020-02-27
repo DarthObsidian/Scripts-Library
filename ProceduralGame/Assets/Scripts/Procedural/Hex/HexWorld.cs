@@ -5,7 +5,8 @@ public class HexWorld : MonoBehaviour
 {
     public Material mat;
     public HexBlockType[] blockTypes;
-    public Dictionary<HexChunk, byte> chunks = new Dictionary<HexChunk, byte>();
+    public Dictionary<HexCoordinates, HexChunk> chunks = new Dictionary<HexCoordinates, HexChunk>();
+    List<HexCoordinates> coords = new List<HexCoordinates>();
     public static readonly int WorldSizeInChunks = 1;
     public static int WorldSizeInVoxels => WorldSizeInChunks * HexChunk.chunkWidth;
 
@@ -24,15 +25,19 @@ public class HexWorld : MonoBehaviour
             for (int z = z1; z <= z2; z++)
             {
                 var coord = new HexCoordinates(x,0,z);
-                CreateNewChunk(x, z);
+                coords.Add(coord);
             }
+        }
+        foreach (var chunk in coords)
+        {
+            CreateNewChunk(chunk);
         }
     }
 
     //creates a new chunk
-    private void CreateNewChunk(int x, int z)
+    private void CreateNewChunk(HexCoordinates coord)
     {
-        chunks.Add(new HexChunk(this, new HexCoordinates(x, 0, z)), 0);
+        chunks.Add(coord, new HexChunk(this, coord));
     }
 
     //calculates what type of block the voxel is
@@ -52,7 +57,13 @@ public class HexWorld : MonoBehaviour
     //checks if the provided chunk is in the world
     private bool IsChunkInWorld(HexChunk chunk)
     {
-        return chunks.ContainsKey(chunk);
+        return chunks.ContainsValue(chunk);
+    }
+
+    //checks if the chunk is in the world
+    private bool IsChunkInWorld(HexCoordinates coord)
+    {
+        return chunks.ContainsKey(coord);
     }
 
     //checks if the given voxel is in the world
@@ -66,15 +77,20 @@ public class HexWorld : MonoBehaviour
         HexCoordinates desiredHex = HexChunk.CalcCoordFromHexmod(HexChunk.CalcDesiredHexmod(hexMod, dir), coord.y + dir.y);
         Vector3 voxelPos = CalculatePos(coord) + chunk.position;
         Vector3 nextVoxelPos = CalculatePos(desiredHex);
-        Debug.Log($"{coord}, {desiredHex}, in direction: {dir}");
-
+        
         foreach(var item in chunk.neighbors)
         {
-            foreach (var hexChunk in chunks)
+            Vector3 neighborPos;
+            if(!chunks.ContainsKey(item))
+                neighborPos = CalculateChunkPos(item);
+            else
+                neighborPos = chunks[item].position;
+                
+            foreach (var hexChunk in coords)
             {
-                if(hexChunk.Key.chunkCoord == item && Vector3.Distance(voxelPos, nextVoxelPos + hexChunk.Key.position) <= HexVoxel.outerRadius)
+                if(hexChunk == item && Vector3.Distance(voxelPos, nextVoxelPos + neighborPos) <= HexVoxel.outerRadius * 1.75)
                 {
-                    Debug.Log($"voxel found: {desiredHex} in {hexChunk.Key} at pos {item}");
+                    Debug.Log("voxel found");
                     return true;
                 }
             }
@@ -88,6 +104,34 @@ public class HexWorld : MonoBehaviour
         float posX = HexVoxel.outerRadius * (Mathf.Sqrt(3) * coord.z  +  Mathf.Sqrt(3)/2 * coord.x);
         float posZ = HexVoxel.outerRadius * 1.5f * (3 / 2 * coord.x);
         return new Vector3(posX, coord.y, posZ);
+    }
+
+    private Vector3 CalculateChunkPos(HexCoordinates coord)
+    {
+        //finds the number of hexvoxel.outerradius' that make up the inner radius of the chunk hex
+        int num = 0;
+        for (int i = 0; i <= HexChunk.chunkWidth; i++)
+        {
+            if (i % 2 == 0 && i != 0)
+                num += 2;
+            else 
+                num +=1;
+        }
+
+        //finds the radius of each chunk hex
+        float chunkInner;
+        if(HexChunk.chunkWidth % 2 == 0)
+            chunkInner = (num * HexVoxel.outerRadius) - (HexVoxel.outerRadius * 0.25f);
+        else
+            chunkInner = (num * HexVoxel.outerRadius) + (HexVoxel.outerRadius * 0.25f);
+
+        float chunkOuter = (chunkInner / 0.866025404f);
+
+        //calculates the position of the chunk
+        float posX = chunkOuter * 1.5f * (3 / 2 * coord.z) + (HexVoxel.innerRadius * (coord.x + coord.z * 0.5f));
+        float posZ = chunkOuter * ((Mathf.Sqrt(3) / 2) * coord.z + (Mathf.Sqrt(3) * coord.x)) + (HexVoxel.innerRadius * 0.866025404f * (coord.x + coord.w));
+        
+        return new Vector3(posX, 0f, posZ);
     }
 }
 
