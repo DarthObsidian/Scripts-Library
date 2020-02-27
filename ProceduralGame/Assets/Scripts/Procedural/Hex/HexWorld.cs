@@ -36,9 +36,9 @@ public class HexWorld : MonoBehaviour
     }
 
     //calculates what type of block the voxel is
-    public byte GetVoxel(HexCoordinates coord, HexCoordinates dir, HexChunk chunk, bool initialize=false)
+    public byte GetVoxel(HexCoordinates coord, HexCoordinates dir, HexChunk chunk)
     {
-        if(!IsVoxelInWorld(coord, dir, chunk) && !initialize)
+        if(!IsVoxelInWorld(coord, dir, chunk))
             return 0;
 
         if(coord.y < 1)
@@ -58,20 +58,23 @@ public class HexWorld : MonoBehaviour
     //checks if the given voxel is in the world
     private bool IsVoxelInWorld(HexCoordinates coord, HexCoordinates dir, HexChunk chunk)
     {
-        int hexMod = HexChunk.CalcHexmod(coord);
-        HexCoordinates desiredHex = HexChunk.CalcCoordFromHexmod(HexChunk.CalcDesiredHexmod(hexMod, dir), coord.w);
+        //if the voxel is looking at itself then it exists
+        if(dir == HexCoordinates.zero)
+            return true;
 
-        var voxelPos = CalculatePos(coord) + chunk.position;
-        var nextVoxelPos = CalculatePos(desiredHex);
+        int hexMod = HexChunk.CalcHexmod(coord);
+        HexCoordinates desiredHex = HexChunk.CalcCoordFromHexmod(HexChunk.CalcDesiredHexmod(hexMod, dir), coord.y + dir.y);
+        Vector3 voxelPos = CalculatePos(coord) + chunk.position;
+        Vector3 nextVoxelPos = CalculatePos(desiredHex);
+        Debug.Log($"{coord}, {desiredHex}, in direction: {dir}");
 
         foreach(var item in chunk.neighbors)
         {
             foreach (var hexChunk in chunks)
             {
-                Debug.Log($"{voxelPos} : {nextVoxelPos + hexChunk.Key.position}");
                 if(hexChunk.Key.chunkCoord == item && Vector3.Distance(voxelPos, nextVoxelPos + hexChunk.Key.position) <= HexVoxel.outerRadius)
                 {
-                    Debug.Log($"voxel found: {desiredHex.x}, {desiredHex.y}, {desiredHex.z} in {hexChunk.Key} at pos {item.x}, {item.y}, {item.z}");
+                    Debug.Log($"voxel found: {desiredHex} in {hexChunk.Key} at pos {item}");
                     return true;
                 }
             }
@@ -79,6 +82,7 @@ public class HexWorld : MonoBehaviour
         return false;
     }
 
+    //calculates the unity local position of a provided hex coord
     private Vector3 CalculatePos(HexCoordinates coord)
     {
         float posX = HexVoxel.outerRadius * (Mathf.Sqrt(3) * coord.z  +  Mathf.Sqrt(3)/2 * coord.x);

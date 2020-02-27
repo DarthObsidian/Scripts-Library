@@ -96,12 +96,14 @@ public class HexChunk
         {
             for (int x = -chunkWidth; x <= chunkWidth; x++)
             {
+                //gets the coords of the farthest possible hexes in the chunk
                 int z1 = Mathf.Max(-chunkWidth, -x - chunkWidth);
                 int z2 = Mathf.Min(chunkWidth, -x + chunkWidth);
                 for (int z = z1; z <= z2; z++)
                 {
+                    //gets what type of voxel should be at the provided coord and adds it to a list
                     var coord = new HexCoordinates(x,y,z);
-                    byte blockType = world.GetVoxel(coord, new HexCoordinates(0,0,0), this, true);
+                    byte blockType = world.GetVoxel(coord, HexCoordinates.zero, this);
                     voxelCoords.Add(coord, blockType);
                 }
             }
